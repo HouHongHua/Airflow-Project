@@ -1,0 +1,49 @@
+##
+cd 這裡自己設位置
+
+## 設定 .env
+echo -e "AIRFLOW_IMAGE_NAME=apache/airflow:2.8.1\nAIRFLOW_UID=50000" > .env
+
+## 裝資料夾
+mkdir -p dags logs plugins config
+
+## 從官網載ymal
+curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.8.1/docker-compose.yaml'
+curl -LfO 'https://airflow.apache.org/docs/apache-airflow/2.11.0/docker-compose.yaml'
+
+## 初始化airflow
+docker compose up airflow-init
+
+## 啟動airflow
+docker compose up -d
+
+## localhost:8080 airflow網站
+
+##設定權限
+cd ~/airflow/
+sudo chown -R hou-honghua:hou-honghua .
+sudo chmod -R 755 .
+
+##可以終端機輸入確定一下狀態 啟動
+docker ps | grep scheduler
+docker-compose ps
+
+## 存取 PostgreSQL 資料庫，在容器內部執行 psql 指令
+docker exec -it airflow-postgres-1 psql -U airflow -d airflow
+
+## 當您成功連線後，您會看到 psql 的提示符號，才能執行SQL 語句：
+SELECT * FROM users;
+
+## 新增 DAG 後要重啟 Airflow，用 Docker Compose，要跑：
+docker-compose restart
+
+## 先shutdown
+## 修改.env加新的套件要重新build 或強制
+docker-compose down
+docker-compose up -d --build
+docker-compose up -d --build --force-recreate
+
+##執行 docker exec 指令　在容器內移動　然後複製檔案出來
+docker exec -it airflow-airflow-worker-1 bash
+cd /opt/airflow/data
+docker cp airflow-airflow-worker-1:/opt/airflow/data/tsmc_prices_20250925_053041.csv .
